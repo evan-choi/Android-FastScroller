@@ -16,6 +16,7 @@
         app:fs_debug="true"
         app:fs_sectionHeight="24dp"
         app:fs_sectionWidth="24dp"
+        app:fs_spacing="12dp"
         app:fs_textColor="#ff0000"
         app:fs_textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"
