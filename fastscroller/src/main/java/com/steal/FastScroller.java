@@ -32,6 +32,8 @@ public class FastScroller extends View {
     private static final int TOUCH_DOWN = 1;
     private static final int TOUCH_SCROLL = 2;
 
+    //region Field
+
     // property
     private float mSpacing = 0;
     private float mTextSize = 0;
@@ -69,7 +71,9 @@ public class FastScroller extends View {
     // event
     private List<OnSectionScrolledListener> listeners;
     private List<DecorationItem> decorations;
+    //endregion
 
+    //region Constructor
     public FastScroller(Context context) {
         super(context);
         initialize(context, null, 0);
@@ -212,7 +216,9 @@ public class FastScroller extends View {
 
         setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom);
     }
+    //endregion
 
+    //region Property
     public void setSectionIndexer(SectionIndexer indexer) {
         if (mIndexer == indexer) {
             return;
@@ -266,7 +272,6 @@ public class FastScroller extends View {
     public void setSpacing(float spacing) {
         if (mSpacing != spacing) {
             mSpacing = spacing;
-            invalidateMeasureSection();
             requestLayout();
         }
     }
@@ -291,61 +296,29 @@ public class FastScroller extends View {
 
     public void setSectionHeight(float sectionHeight) {
         mSectionHeight = sectionHeight;
-        invalidateMeasureSection();
         requestLayout();
     }
+    //endregion
 
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-        invalidateMeasureSection();
-        invalidate();
+    //region Measured Property
+    public float getMeasuredTextHeight() {
+        return measuredTextHeight;
     }
 
-    @Override
-    public void invalidate() {
-        if (initialized) {
-            super.invalidate();
-        }
+    public float getMeasuredSpacing() {
+        return measuredSpacing;
     }
 
-    @Override
-    public void requestLayout() {
-        if (initialized) {
-            super.requestLayout();
-        }
+    public float getMeasuredSectionWidth() {
+        return measuredSectionWidth;
     }
 
-    private void invalidateMeasureSection() {
-        if (initialized) {
-            measureSection();
-        }
+    public float getMeasuredSectionHeight() {
+        return measuredSectionHeight;
     }
+    //endregion
 
-    private void measureSection() {
-        dirty = false;
-
-        measuredTextHeight = -textPaint.descent() - textPaint.ascent();
-        measuredSectionWidth = Math.max(mSectionWidth, 0);
-
-        if (sectionLength > 0 && sectionCacheDirty) {
-            sectionCacheDirty = false;
-
-            if (mSectionWidth >= 0) {
-                measuredSectionWidth = mSectionWidth;
-            } else {
-                measuredSectionWidth = 0;
-
-                textPaint.setTextSize(mTextSize);
-                textPaint.setTypeface(Typeface.DEFAULT);
-
-                for (String section : sectionCache) {
-                    measuredSectionWidth = Math.max(measuredSectionWidth, textPaint.measureText(section));
-                }
-            }
-        }
-    }
-
+    //region Touch (Scroll)
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         int y = (int) event.getY();
@@ -399,9 +372,56 @@ public class FastScroller extends View {
 
         return true;
     }
+    //endregion
 
-    protected void onSectionChanged(int index) {
-        // TODO: virtual method
+    //region Invalidate
+    @Override
+    public void invalidate() {
+        if (initialized) {
+            super.invalidate();
+        }
+    }
+
+    @Override
+    public void requestLayout() {
+        if (initialized) {
+            super.requestLayout();
+        }
+    }
+
+    private void invalidateMeasureSection() {
+        if (initialized) {
+            measureSection();
+        }
+    }
+    //endregion
+
+    //region Measure
+    private void measureSection() {
+        dirty = false;
+
+        measuredTextHeight = -textPaint.descent() - textPaint.ascent();
+        measuredSectionWidth = Math.max(mSectionWidth, 0);
+
+        if (sectionLength == 0 || !sectionCacheDirty) {
+            sectionCacheDirty = false;
+            return;
+        }
+
+        sectionCacheDirty = false;
+
+        if (mSectionWidth >= 0) {
+            measuredSectionWidth = mSectionWidth;
+        } else {
+            measuredSectionWidth = 0;
+
+            textPaint.setTextSize(mTextSize);
+            textPaint.setTypeface(Typeface.DEFAULT);
+
+            for (String section : sectionCache) {
+                measuredSectionWidth = Math.max(measuredSectionWidth, textPaint.measureText(section));
+            }
+        }
     }
 
     @Override
@@ -469,6 +489,7 @@ public class FastScroller extends View {
 
         setMeasuredDimension(width, height);
     }
+    //endregion
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -482,19 +503,24 @@ public class FastScroller extends View {
 
         float width = getMeasuredWidth() - getPaddingLeft() - getPaddingRight();
         float centerX = width / 2f;
-        float y = measuredSpacing / 2;
 
         textPaint.setColor(mTextColor);
         textPaint.setTextSize(mTextSize);
         textPaint.setTypeface(Typeface.DEFAULT);
 
+        float groupHeight = measuredSectionHeight + measuredSpacing;
+        float halfSpacing = measuredSpacing / 2;
+        float y;
+
         for (int i = 0; i < sectionLength; i++) {
+            y = i * groupHeight;
+
             if (debugPaint != null) {
-                debugRect.set(0, y, width - 1, y + measuredSectionHeight - 1);
+                debugRect.set(0, y + halfSpacing, width - 1, y + groupHeight - halfSpacing - 1);
                 canvas.drawRect(debugRect, debugPaint);
             }
 
-            float offset = (measuredSectionHeight + measuredTextHeight) / 2;
+            y += (groupHeight + measuredTextHeight) / 2f;
 
             if (touchState == TOUCH_SCROLL) {
                 paintProperty.setValue(textPaint);
@@ -504,13 +530,15 @@ public class FastScroller extends View {
                     decoration.onDraw(canvas, stringProperty, paintProperty, i, Math.abs(i - sectionIndex));
                 }
 
-                canvas.drawText(stringProperty.getValue(), centerX, y + offset, paintProperty.getValue());
+                canvas.drawText(stringProperty.getValue(), centerX, y, paintProperty.getValue());
             } else {
-                canvas.drawText(sectionCache[i], centerX, y + offset, textPaint);
+                canvas.drawText(sectionCache[i], centerX, y, textPaint);
             }
-
-            y += measuredSectionHeight + measuredSpacing;
         }
+    }
+
+    protected void onSectionChanged(int index) {
+        // TODO: virtual method
     }
 
     private void raiseOnSectionScrolledListener(int section) {
@@ -552,7 +580,7 @@ public class FastScroller extends View {
             sections = new Object[10];
 
             for (int i = 0; i < sections.length; i++) {
-                sections[i] = String.valueOf(i);
+                sections[i] = (char) (97 + i);
             }
         }
 
