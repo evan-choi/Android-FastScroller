@@ -28,8 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FastScroller extends View {
-    private static final boolean DEBUG = false;
-
     private static final int TOUCH_IDLE = 0;
     private static final int TOUCH_DOWN = 1;
     private static final int TOUCH_SCROLL = 2;
@@ -44,7 +42,9 @@ public class FastScroller extends View {
 
     // cache
     private boolean initialized;
+    private boolean dirty = true;
     private String[] sectionCache;
+    private int sectionLength;
     private boolean sectionCacheDirty;
     private int sectionIndex = -1;
     private Property<String> stringProperty;
@@ -98,18 +98,10 @@ public class FastScroller extends View {
         textPaint.setTextAlign(Paint.Align.CENTER);
         textPaint.setColor(Color.BLACK);
 
-        if (DEBUG && BuildConfig.DEBUG) {
-            debugPaint = new Paint();
-            debugPaint.setColor(Color.RED);
-            debugPaint.setStrokeWidth((int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, context.getResources().getDisplayMetrics()));
-            debugPaint.setStyle(Paint.Style.STROKE);
-
-            debugRect = new RectF();
-        }
-
         float defaultTextSize = getResources().getDimension(R.dimen.fast_scroller_text_size);
         float defaultSpacing = getResources().getDimension(R.dimen.fast_scroller_spacing);
         int defaultTextColor = ContextCompat.getColor(getContext(), R.color.fast_scroller_text);
+        boolean debug = false;
 
         if (attrs != null) {
             TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.FastScroller, defStyleAttrs, 0);
@@ -119,22 +111,32 @@ public class FastScroller extends View {
             setSpacing(array.getDimension(R.styleable.FastScroller_fs_spacing, defaultSpacing));
             setSectionWidth(array.getDimension(R.styleable.FastScroller_fs_sectionWidth, -1));
             setSectionHeight(array.getDimension(R.styleable.FastScroller_fs_sectionHeight, -1));
+            debug = array.getBoolean(R.styleable.FastScroller_fs_debug, false);
 
             overrideDefaultAttributes(context, array);
 
             array.recycle();
         }
 
-        // 프리뷰
-        if (isInEditMode()) {
-            setSectionIndexer(new PreviewSectionIndexer());
+        // debug
+        if (debug && BuildConfig.DEBUG) {
+            debugPaint = new Paint();
+            debugPaint.setColor(Color.RED);
+            debugPaint.setStrokeWidth((int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, context.getResources().getDisplayMetrics()));
+            debugPaint.setStyle(Paint.Style.STROKE);
+
+            debugRect = new RectF();
         }
 
         // touch
         touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
 
         initialized = true;
-        invalidateMeasure();
+
+        // 프리뷰
+        if (isInEditMode()) {
+            setSectionIndexer(new PreviewSectionIndexer());
+        }
     }
 
     private void overrideDefaultAttributes(Context context, TypedArray array) {
@@ -202,10 +204,10 @@ public class FastScroller extends View {
                 }
             }
         } else {
-            paddingLeft = defaultPadding;
-            paddingTop = defaultPadding;
-            paddingRight = defaultPadding;
-            paddingBottom = defaultPadding;
+            paddingLeft = padding;
+            paddingTop = padding;
+            paddingRight = padding;
+            paddingBottom = padding;
         }
 
         setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom);
@@ -218,19 +220,22 @@ public class FastScroller extends View {
 
         if (indexer != null && indexer.getSections() != null) {
             Object[] sections = indexer.getSections();
+            sectionLength = sections.length;
             sectionCache = new String[sections.length];
 
-            for (int i = 0; i < sectionCache.length; i++) {
+            for (int i = 0; i < sectionLength; i++) {
                 sectionCache[i] = String.valueOf(sections[i]);
             }
         } else {
+            sectionLength = 0;
             sectionCache = null;
         }
 
         sectionCacheDirty = true;
+        sectionIndex = -1;
         mIndexer = indexer;
 
-        invalidateMeasure();
+        invalidateMeasureSection();
         requestLayout();
     }
 
@@ -238,7 +243,7 @@ public class FastScroller extends View {
         if (mTextSize != textSize) {
             mTextSize = textSize;
             textPaint.setTextSize(textSize);
-            invalidateMeasure();
+            invalidateMeasureSection();
             requestLayout();
         }
     }
@@ -261,7 +266,7 @@ public class FastScroller extends View {
     public void setSpacing(float spacing) {
         if (mSpacing != spacing) {
             mSpacing = spacing;
-            invalidateMeasure();
+            invalidateMeasureSection();
             requestLayout();
         }
     }
@@ -276,7 +281,7 @@ public class FastScroller extends View {
 
     public void setSectionWidth(float sectionWidth) {
         mSectionWidth = sectionWidth;
-        invalidateMeasure();
+        invalidateMeasureSection();
         requestLayout();
     }
 
@@ -286,14 +291,14 @@ public class FastScroller extends View {
 
     public void setSectionHeight(float sectionHeight) {
         mSectionHeight = sectionHeight;
-        invalidateMeasure();
+        invalidateMeasureSection();
         requestLayout();
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        invalidateMeasure();
+        invalidateMeasureSection();
         invalidate();
     }
 
@@ -311,44 +316,33 @@ public class FastScroller extends View {
         }
     }
 
-    private void invalidateMeasure() {
-        measuredTextHeight = -textPaint.descent() - textPaint.ascent();
-        measuredSectionHeight = measuredTextHeight;
-
-        if (mSectionHeight >= 0) {
-            measuredSectionHeight = mSectionHeight;
+    private void invalidateMeasureSection() {
+        if (initialized) {
+            measureSection();
         }
+    }
 
-        if (sectionCache != null) {
-            float spacingHeight = getMeasuredHeight() - getPaddingTop() - getPaddingBottom();
+    private void measureSection() {
+        dirty = false;
 
-            spacingHeight -= sectionCache.length * measuredSectionHeight;
-            spacingHeight -= (sectionCache.length - 1) * mSpacing;
+        measuredTextHeight = -textPaint.descent() - textPaint.ascent();
+        measuredSectionWidth = Math.max(mSectionWidth, 0);
 
-            measuredSpacing = spacingHeight / (sectionCache.length * 2);
-
-            if (!sectionCacheDirty) {
-                return;
-            }
-
+        if (sectionLength > 0 && sectionCacheDirty) {
             sectionCacheDirty = false;
 
             if (mSectionWidth >= 0) {
                 measuredSectionWidth = mSectionWidth;
-                return;
+            } else {
+                measuredSectionWidth = 0;
+
+                textPaint.setTextSize(mTextSize);
+                textPaint.setTypeface(Typeface.DEFAULT);
+
+                for (String section : sectionCache) {
+                    measuredSectionWidth = Math.max(measuredSectionWidth, textPaint.measureText(section));
+                }
             }
-
-            measuredSectionWidth = 0;
-
-            textPaint.setTextSize(mTextSize);
-            textPaint.setTypeface(Typeface.DEFAULT);
-
-            for (String section : sectionCache) {
-                measuredSectionWidth = Math.max(measuredSectionWidth, textPaint.measureText(section));
-            }
-        } else {
-            measuredSpacing = 0;
-            measuredSectionWidth = Math.max(mSectionWidth, 0);
         }
     }
 
@@ -356,7 +350,11 @@ public class FastScroller extends View {
     public boolean onTouchEvent(MotionEvent event) {
         int y = (int) event.getY();
 
-        y -= getPaddingTop();
+        if (touchState != TOUCH_IDLE && sectionLength == 0) {
+            touchState = TOUCH_IDLE;
+            invalidate();
+            return true;
+        }
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
@@ -370,16 +368,20 @@ public class FastScroller extends View {
                         touchState = TOUCH_SCROLL;
                     }
                 } else {
-                    float groupHeight = measuredSpacing * 2 + measuredSectionHeight + mSpacing;
+                    float halfSpacing = measuredSpacing / 2;
+                    float groupHeight = measuredSectionHeight + measuredSpacing;
+
+                    y = (int) Math.min(Math.max(y - getPaddingTop(), halfSpacing), sectionLength * groupHeight - halfSpacing);
+
                     int index = (int) Math.floor(y / groupHeight);
 
-                    if (index < 0 || index >= sectionCache.length || index == sectionIndex) {
+                    if (index == sectionIndex) {
                         break;
                     }
 
-                    y -= groupHeight * index;
+                    y -= index * groupHeight;
 
-                    if (y <= groupHeight - mSpacing) {
+                    if (halfSpacing <= y && y <= groupHeight - halfSpacing) {
                         sectionIndex = index;
                         onSectionChanged(index);
                         raiseOnSectionScrolledListener(index);
@@ -391,7 +393,6 @@ public class FastScroller extends View {
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 touchState = TOUCH_IDLE;
-                sectionIndex = -1;
                 invalidate();
                 break;
         }
@@ -410,10 +411,8 @@ public class FastScroller extends View {
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
         int height = MeasureSpec.getSize(heightMeasureSpec);
 
-        int length = 0;
-
-        if (sectionCache != null) {
-            length = sectionCache.length;
+        if (dirty) {
+            measureSection();
         }
 
         if (widthMode != MeasureSpec.EXACTLY) {
@@ -426,15 +425,45 @@ public class FastScroller extends View {
             }
         }
 
+        measuredSpacing = mSpacing;
+        measuredSectionHeight = mSectionHeight == -1 ? measuredTextHeight : mSectionHeight;
+
+        boolean measure = false;
+
         if (heightMode != MeasureSpec.EXACTLY) {
-            int measuredHeight = getPaddingTop() + getPaddingBottom();
-            measuredHeight += length * measuredSectionHeight;
-            measuredHeight += (length - 1) * mSpacing;
+            float desiredHeight = (measuredSectionHeight + measuredSpacing) * sectionLength;
+            int measuredHeight = (int) (desiredHeight + getPaddingTop() + getPaddingBottom());
 
             if (heightMode == MeasureSpec.AT_MOST) {
+                measure = measuredHeight > height;
                 height = Math.min(measuredHeight, height);
             } else {
                 height = measuredHeight;
+            }
+        } else {
+            measure = true;
+        }
+
+        if (measure) {
+            int contentHeight = Math.max(0, height - getPaddingTop() - getPaddingBottom());
+
+            if (mSectionHeight == -1) {
+                measuredSectionHeight = Math.max(0, contentHeight - sectionLength * measuredSpacing) / sectionLength;
+            }
+
+            float desiredHeight = (measuredSectionHeight + measuredSpacing) * sectionLength;
+
+            if (desiredHeight < contentHeight) {
+                measuredSpacing = (contentHeight - measuredSectionHeight * sectionLength) / sectionLength;
+            } else {
+                measuredSpacing = 0;
+                desiredHeight = measuredSectionHeight * sectionLength;
+
+                if (desiredHeight > contentHeight) {
+                    measuredSectionHeight = contentHeight / (float) sectionLength;
+                } else {
+                    measuredSpacing = (contentHeight - desiredHeight) / sectionLength;
+                }
             }
         }
 
@@ -445,7 +474,7 @@ public class FastScroller extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        if (sectionCache == null) {
+        if (sectionLength == 0) {
             return;
         }
 
@@ -453,15 +482,15 @@ public class FastScroller extends View {
 
         float width = getMeasuredWidth() - getPaddingLeft() - getPaddingRight();
         float centerX = width / 2f;
-        float y = measuredSpacing;
+        float y = measuredSpacing / 2;
 
         textPaint.setColor(mTextColor);
         textPaint.setTextSize(mTextSize);
         textPaint.setTypeface(Typeface.DEFAULT);
 
-        for (int i = 0; i < sectionCache.length; i++) {
+        for (int i = 0; i < sectionLength; i++) {
             if (debugPaint != null) {
-                debugRect.set(0, y - measuredSpacing, width - 1, y + measuredSpacing + measuredSectionHeight);
+                debugRect.set(0, y, width - 1, y + measuredSectionHeight - 1);
                 canvas.drawRect(debugRect, debugPaint);
             }
 
@@ -480,8 +509,7 @@ public class FastScroller extends View {
                 canvas.drawText(sectionCache[i], centerX, y + offset, textPaint);
             }
 
-            y += measuredSectionHeight;
-            y += measuredSpacing * 2 + mSpacing;
+            y += measuredSectionHeight + measuredSpacing;
         }
     }
 

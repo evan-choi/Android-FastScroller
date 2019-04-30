@@ -19,8 +19,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         final FastScroller scroller = findViewById(R.id.indexer_scroller);
+        final TextView tvSection = findViewById(R.id.tv_section);
 
         scroller.setSectionIndexer(new PreviewSectionIndexer());
+
+        scroller.addOnSectionScrolledListener(new FastScroller.OnSectionScrolledListener() {
+            @Override
+            public void onSectionScrolled(SectionIndexer indexer, int section) {
+                tvSection.setText(String.valueOf(section));
+            }
+        });
 
         // alpha decoration
         scroller.addDecoration(new FastScroller.DecorationItem() {
@@ -78,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
 
         public PreviewSectionIndexer() {
             String preset = "ABCDEFGHIJKLMNOPQRSTUVWXYZㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎ0123456789";
+            //String preset = "0123456789";
             sections = new Object[preset.length()];
 
             for (int i = 0; i < preset.length(); i++) {

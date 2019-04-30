@@ -10,14 +10,25 @@
     <com.steal.FastScroller
         android:id="@+id/indexer_scroller"
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:padding="0dp"
-        app:fs_textColor="#000000"
-        app:fs_textSize="10sp"
-        app:fs_spacing="0dp"
-        app:fs_sectionWidth="40dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        app:fs_debug="true"
+        app:fs_sectionHeight="24dp"
+        app:fs_sectionWidth="24dp"
+        app:fs_textColor="#ff0000"
+        app:fs_textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/tv_section"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="48sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/indexer_scroller"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 </android.support.constraint.ConstraintLayout>
