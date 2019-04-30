@@ -85,8 +85,8 @@ public class MainActivity extends AppCompatActivity {
         private Object[] sections;
 
         public PreviewSectionIndexer() {
-            String preset = "ABCDEFGHIJKLMNOPQRSTUVWXYZㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎ0123456789";
-            //String preset = "0123456789";
+            //String preset = "ABCDEFGHIJKLMNOPQRSTUVWXYZㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎ0123456789";
+            String preset = "ABCDEFGHIJ";
             sections = new Object[preset.length()];
 
             for (int i = 0; i < preset.length(); i++) {
