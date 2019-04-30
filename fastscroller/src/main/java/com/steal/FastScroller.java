@@ -298,6 +298,10 @@ public class FastScroller extends View {
         mSectionHeight = sectionHeight;
         requestLayout();
     }
+
+    public int getSectionIndex() {
+        return sectionIndex;
+    }
     //endregion
 
     //region Measured Property
