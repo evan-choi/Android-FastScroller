@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <declare-styleable name="FastScroller">
-        <attr name="is_textSize" format="dimension" />
-        <attr name="is_textColor" format="color" />
-        <attr name="is_spacing" format="dimension" />
-    </declare-styleable>
-</resources>

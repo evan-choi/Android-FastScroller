@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="fast_scroller_text">#808080</color>
+    <color name="fast_scroller_background">#f7f7f7</color>
+</resources>

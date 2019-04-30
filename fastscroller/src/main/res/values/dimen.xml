@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="fast_scroller_text_size">12sp</dimen>
+    <dimen name="fast_scroller_padding">12dp</dimen>
+    <dimen name="fast_scroller_spacing">8dp</dimen>
+</resources>

@@ -1,4 +1,4 @@
-package com.steal.fastscroller;
+package com.steal.project;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -8,7 +8,8 @@ import android.os.Bundle;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
 
-import com.steal.fastscroller.common.Property;
+import com.steal.FastScroller;
+import com.steal.common.Property;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -18,7 +19,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         final FastScroller scroller = findViewById(R.id.indexer_scroller);
-        final TextView tvSection = findViewById(R.id.tv_section);
 
         scroller.setSectionIndexer(new PreviewSectionIndexer());
 
@@ -71,23 +71,17 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-        scroller.addOnSectionScrolledListener(new FastScroller.OnSectionScrolledListener() {
-            @Override
-            public void onSectionScrolled(SectionIndexer indexer, int section) {
-                tvSection.setText("section " + section + "\n(" + System.nanoTime() + ")");
-            }
-        });
     }
 
     private class PreviewSectionIndexer implements SectionIndexer {
         private Object[] sections;
 
         public PreviewSectionIndexer() {
-            sections = new Object[10];
+            String preset = "ABCDEFGHIJKLMNOPQRSTUVWXYZㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎ0123456789";
+            sections = new Object[preset.length()];
 
-            for (int i = 0; i < sections.length; i++) {
-                sections[i] = String.valueOf(i);
+            for (int i = 0; i < preset.length(); i++) {
+                sections[i] = preset.charAt(i);
             }
         }
 

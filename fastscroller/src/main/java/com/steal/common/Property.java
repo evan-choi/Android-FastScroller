@@ -1,4 +1,4 @@
-package com.steal.fastscroller.common;
+package com.steal.common;
 
 public class Property<T> {
     private T value;

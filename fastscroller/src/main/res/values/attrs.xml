@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="FastScroller">
+        <attr name="fs_textSize" format="dimension" />
+        <attr name="fs_textColor" format="color" />
+        <attr name="fs_spacing" format="dimension" />
+        <attr name="fs_sectionWidth" format="dimension" />
+        <attr name="fs_sectionHeight" format="dimension" />
+
+        <!-- default attributes override -->
+
+        <attr name="android:background" format="reference" />
+        <attr name="android:padding" format="dimension" />
+        <attr name="android:paddingHorizontal" format="dimension" />
+        <attr name="android:paddingStart" format="dimension" />
+        <attr name="android:paddingLeft" format="dimension" />
+        <attr name="android:paddingEnd" format="dimension" />
+        <attr name="android:paddingRight" format="dimension" />
+        <attr name="android:paddingVertical" format="dimension" />
+        <attr name="android:paddingTop" format="dimension" />
+        <attr name="android:paddingBottom" format="dimension" />
+    </declare-styleable>
+</resources>
