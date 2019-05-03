@@ -41,6 +41,7 @@ public class FastScroller extends View {
     private SectionIndexer mIndexer;
     private float mSectionWidth;
     private float mSectionHeight;
+    private boolean mSensitiveScroll;
 
     // cache
     private boolean initialized;
@@ -115,6 +116,7 @@ public class FastScroller extends View {
             setSpacing(array.getDimension(R.styleable.FastScroller_fs_spacing, defaultSpacing));
             setSectionWidth(array.getDimension(R.styleable.FastScroller_fs_sectionWidth, -1));
             setSectionHeight(array.getDimension(R.styleable.FastScroller_fs_sectionHeight, -1));
+            setSensitiveScroll(array.getBoolean(R.styleable.FastScroller_fs_sensitiveScroll, false));
             debug = array.getBoolean(R.styleable.FastScroller_fs_debug, false);
 
             overrideDefaultAttributes(context, array);
@@ -302,6 +304,15 @@ public class FastScroller extends View {
     public int getSectionIndex() {
         return sectionIndex;
     }
+
+    public boolean isSensitiveScroll() {
+        return mSensitiveScroll;
+    }
+
+    public void setSensitiveScroll(boolean value) {
+        mSensitiveScroll = value;
+    }
+
     //endregion
 
     //region Measured Property
@@ -336,8 +347,13 @@ public class FastScroller extends View {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 downY = y;
-                touchState = TOUCH_DOWN;
-                break;
+
+                if (mSensitiveScroll) {
+                    touchState = TOUCH_SCROLL;
+                } else {
+                    touchState = TOUCH_DOWN;
+                    break;
+                }
 
             case MotionEvent.ACTION_MOVE:
                 if (touchState == TOUCH_DOWN) {

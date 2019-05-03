@@ -16,6 +16,7 @@
         app:fs_debug="false"
         app:fs_sectionHeight="24dp"
         app:fs_sectionWidth="24dp"
+        app:fs_sensitiveScroll="true"
         app:fs_spacing="12dp"
         app:fs_textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"

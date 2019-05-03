@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // string property
+        // section text overload decoration
         scroller.addDecoration(new FastScroller.DecorationItem() {
             @Override
             public void onDraw(Canvas canvas, Property<String> text, Property<Paint> paint, int index, int distance) {

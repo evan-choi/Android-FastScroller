@@ -6,6 +6,7 @@
         <attr name="fs_spacing" format="dimension" />
         <attr name="fs_sectionWidth" format="dimension" />
         <attr name="fs_sectionHeight" format="dimension" />
+        <attr name="fs_sensitiveScroll" format="boolean" />
 
         <attr name="fs_debug" format="boolean" />
 
