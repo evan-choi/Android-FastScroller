@@ -30,8 +30,11 @@ COMING SOON
     app:fs_sectionWidth="24dp"
     app:fs_spacing="12dp"
     app:fs_textColor="#ff0000"
-    app:fs_textSize="14sp" />
+    app:fs_textSize="14sp"
+    app:fs_sensitiveScroll="true"/>
 ```
+
+SensitiveScroll : Raise event immediately when touch down 
 
 ### Setup
 
