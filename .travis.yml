@@ -14,4 +14,4 @@ before_install:
   - chmod +rx app
 skip_cleanup: true
 script:
-  - "sh script/build.sh"
+  - ./gradlew build
