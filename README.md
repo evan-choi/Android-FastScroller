@@ -1,6 +1,6 @@
 # Android-FastScroll
 
-[![API](https://img.shields.io/badge/API-14%2B-blue.svg?style=flat)](https://android-arsenal.com/api?level=14)
+[![API](https://img.shields.io/badge/API-14%2B-blue.svg?style=flat)](https://android-arsenal.com/api?level=14) [![Build Status](https://travis-ci.org/SteaI/Android-FastScroller.svg?branch=master)](https://travis-ci.org/SteaI/Android-FastScroller)
 
 `FastSroller` for Android [SectionIndexer](https://developer.android.com/reference/android/widget/SectionIndexer) interface
 
