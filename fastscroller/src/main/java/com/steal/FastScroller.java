@@ -221,13 +221,9 @@ public class FastScroller extends View {
     //endregion
 
     //region Property
-    public void setSectionIndexer(SectionIndexer indexer) {
-        if (mIndexer == indexer) {
-            return;
-        }
-
-        if (indexer != null && indexer.getSections() != null) {
-            Object[] sections = indexer.getSections();
+    public void invalidateSectionIndexer() {
+        if (mIndexer != null && mIndexer.getSections() != null) {
+            Object[] sections = mIndexer.getSections();
             sectionLength = sections.length;
             sectionCache = new String[sections.length];
 
@@ -241,10 +237,19 @@ public class FastScroller extends View {
 
         sectionCacheDirty = true;
         sectionIndex = -1;
-        mIndexer = indexer;
 
         invalidateMeasureSection();
         requestLayout();
+    }
+
+    public void setSectionIndexer(SectionIndexer indexer) {
+        if (mIndexer == indexer) {
+            return;
+        }
+
+        mIndexer = indexer;
+
+        invalidateSectionIndexer();
     }
 
     public void setTextSize(float textSize) {
